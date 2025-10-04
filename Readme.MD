@@ -65,6 +65,8 @@ pip install pillow pywin32
 
 基于Python 3 开发，使用Tkinter图形界面，PIL库处理图片。
 
+该项目全程使用Kimi AI 生成代码，本人仅参与策划、文案、测试。
+
 GitHub项目地址：https://github.com/RxinnotRstar/image-classifier-for-keyboard-Python
 
 如有问题或建议，欢迎在GitHub提交Issue！
