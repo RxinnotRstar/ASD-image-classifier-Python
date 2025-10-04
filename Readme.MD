@@ -25,15 +25,16 @@
 
 如要运行源代码，请确保已安装Python 3.6+
 
-【代码】
+
 # 安装所需库
+```
 pip install pillow pywin32
-【代码】
+```
 
 然后运行：
-【代码】
+```
 python image_classifier.py
-【代码】
+```
 
 ## 使用教程
 
