@@ -15,21 +15,14 @@
 
 ## 下载与运行
 
-### 方法一：直接运行（推荐给非技术人员）
-
-1. 前往【发布页面】https://github.com/RxinnotRstar/image-classifier-for-keyboard-Python/releases
-2. 下载最新版本的【image_classifier.exe】文件
-3. 双击即可运行，无需安装Python
-
-### 方法二：源代码运行（需要Python环境）
-
-如要运行源代码，请确保已安装Python 3.6+（ https://www.python.org/downloads/ ），然后安装所需库：
+如要运行源代码，请确保已安装Python 3.7+（ https://www.python.org/downloads/ ），然后安装所需库：
 
 ```
 pip install pillow pywin32
 ```
 
 然后运行：
+
 ```
 python image_classifier.py
 ```
@@ -38,7 +31,7 @@ python image_classifier.py
 
 ### 1. 设置输入文件夹
 - 点击【浏览...】选择包含图片的文件夹
-- 勾选【包含子文件夹】可扫描所有子目录
+- 勾选【包含子文件夹】可扫描所有子目录，否则只能扫描选中的一层目录
 
 ### 2. 设置输出文件夹
 - 为【文件夹１(A)】、【文件夹２(S)】、【文件夹３(D)】分别选择目标文件夹
@@ -48,9 +41,9 @@ python image_classifier.py
 - 按【A】键：将当前图片分类到文件夹１
 - 按【S】键：将当前图片分类到文件夹２  
 - 按【D】键：将当前图片分类到文件夹３
-- 按【W】键：跳过当前图片
-- 按【X】键：回退到上一张图片
-- 按【Ctrl+Z】：撤销上一次分类操作
+- 按【W】键：跳过当前图片，查看下一张未分类图片
+- 按【X】键：查看上一张未分类图片
+- 按【Ctrl+Z】：撤销上一次的分类操作，可连续撤销
 
 ### 4. 其他功能
 - 【双击图片】用默认程序打开当前文件
@@ -64,10 +57,8 @@ python image_classifier.py
 【Flash格式】SWF
 
 ## 系统要求
-
-- Windows 7/8/10/11 操作系统
-- 无需网络连接
-- 约50MB磁盘空间
+    Python 3.7 或更高版本（请前往python官网： https://www.python.org/downloads/ ，查阅python对系统的需求）
+    所需库：Pillow, pywin32
 
 ## 注意事项
 
@@ -77,7 +68,7 @@ python image_classifier.py
 
 ## 技术信息
 
-基于Python 3.x开发，使用Tkinter图形界面，PIL库处理图片。
+基于Python 3 开发，使用Tkinter图形界面，PIL库处理图片。
 
 GitHub项目地址：https://github.com/RxinnotRstar/image-classifier-for-keyboard-Python
 
