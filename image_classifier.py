@@ -6,7 +6,6 @@ import ctypes
 from tkinter import *
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
-from datetime import datetime
 import win32api
 import win32con
 
@@ -22,9 +21,7 @@ class ImageClassifier:
             pass
         import tkinter.font as tkfont
         default_font = tkfont.nametofont("TkDefaultFont")
-# =====================================================================================
         default_font.configure(size=20)      # 字体大小在这里调
-# =====================================================================================
         self.default_font = default_font
         self.root.option_add("*Font", default_font)
         self.config_file = "classifier_config.json"
@@ -45,7 +42,7 @@ class ImageClassifier:
         self.image_files = []
         self.current_index = 0
         self.history = []          # 撤销栈
-        self.skip_stack = []       # 【新增】记录被 W 跳过的文件
+        self.skip_stack = []       # 记录被 W 跳过的文件
 
         # 支持的扩展名
         self.img_ext = ('.jpg','.jpeg','.png','.gif','.bmp','.tiff','.ico')
@@ -57,11 +54,9 @@ class ImageClassifier:
         self.build_ui()
         self.root.after(100, lambda: self.root.focus_force())
         if self.input_folder.get() and os.path.exists(self.input_folder.get()):
-            self.root.after(200, self.load_images)  # 延迟加载图片，缓解第二次打开脚本的时候图片溢出屏幕的问题。
-            #原来的代码：【            self.load_images()】
-    # ------------------------------------------------------------------
-    # UI 构建
-    # ------------------------------------------------------------------
+            self.root.after(200, self.load_images)  # 延迟加载，避免二次打开溢出
+
+    # --------------------------- UI 构建 ---------------------------
     def build_ui(self):
         # 1. 输入行
         line1 = Frame(self.root)
@@ -115,20 +110,18 @@ class ImageClassifier:
         self.status = Label(self.root, text="", bd=1, relief=SUNKEN, anchor=W)
         self.status.pack(side=BOTTOM, fill=X)
 
-        # 6. 键盘
+        # 6. 键盘绑定
         for key, func in (('a', lambda e: self.move_to(0)),
                          ('s', lambda e: self.move_to(1)),
                          ('d', lambda e: self.move_to(2)),
                          ('w', lambda e: self.skip()),
-                         ('x', lambda e: self.go_back()),          # 【新增】
+                         ('x', lambda e: self.go_back()),
                          ('<Control-z>', lambda e: self.undo())):
             self.root.bind(key, func)
 
         self.update_display()
 
-    # ------------------------------------------------------------------
-    # 按钮回调
-    # ------------------------------------------------------------------
+    # -----------------------  按钮回调  -----------------------
     def browse_input(self):
         d = filedialog.askdirectory()
         if d:
@@ -143,9 +136,7 @@ class ImageClassifier:
             self.save_config()
             self.update_display()
 
-    # ------------------------------------------------------------------
-    # 加载图片
-    # ------------------------------------------------------------------
+    # -----------------------  加载图片  -----------------------
     def load_images(self):
         self.image_files = []
         if not self.input_folder.get(): return
@@ -176,10 +167,11 @@ class ImageClassifier:
         self.current_index = 0
         self.update_display()
 
-    # ------------------------------------------------------------------
-    # 显示逻辑
-    # ------------------------------------------------------------------
+    # -----------------------  显示逻辑  -----------------------
     def update_display(self):
+        # 保证状态栏始终刷新，序号不再消失
+        self.update_status_bar()
+
         if not self.input_folder.get():
             self.show_welcome(); return
         if not os.path.exists(self.input_folder.get()):
@@ -191,7 +183,6 @@ class ImageClassifier:
             self.show_error("请选择至少２个输出文件夹！")
             return
         self.show_current()
-        self.update_status_bar()
 
     def show_welcome(self):
         txt = ("图片分类工具 by Kimi-AI & Rxinns\n\n"
@@ -240,9 +231,7 @@ class ImageClassifier:
         else:
             self.status.config(text="")
 
-    # ------------------------------------------------------------------
-    # 核心操作
-    # ------------------------------------------------------------------
+    # -----------------------  核心操作  -----------------------
     def move_to(self, idx):
         if not self.image_files or idx >= 3: return
         fo = self.output_folders[idx]["path"].get()
@@ -285,10 +274,8 @@ class ImageClassifier:
             self.current_index = 0
         self.update_display()
 
-    # 【新增】按 X 回退刚才跳过的图片，栈空则静默
     def go_back(self):
-        if not self.skip_stack:          # 栈空，什么都不做
-            return
+        if not self.skip_stack: return
         back_file = self.skip_stack.pop()
         self.image_files.insert(self.current_index, back_file)
         self.update_display()
@@ -315,9 +302,7 @@ class ImageClassifier:
         except Exception as e:
             messagebox.showerror("错误", f"无法打开文件：{e}")
 
-    # ------------------------------------------------------------------
-    # 配置持久化
-    # ------------------------------------------------------------------
+    # -----------------------  配置持久化  -----------------------
     def save_config(self):
         cfg = {
             'input_folder': self.input_folder.get(),
