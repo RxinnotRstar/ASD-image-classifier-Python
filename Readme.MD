@@ -1,36 +1,5 @@
 # 图片分类工具 - 键盘快速分类助手
 
-一个基于Python开发的图片分类工具，支持通过键盘快捷键快速将图片分类到指定文件夹。
-
-## 功能特点
-
-- 【键盘快速分类】使用A、S、D三个键分别对应三个输出文件夹
-- 【支持多种格式】图片（JPG/PNG/GIF等）、视频（MP4/AVI等）、Flash文件（SWF）
-- 【灵活操作模式】支持复制模式（保留原文件）和移动模式
-- 【智能排序】可按名称、时间、大小排序，支持正序/倒序
-- 【撤销功能】支持Ctrl+Z撤销操作和X键回退
-- 【子文件夹扫描】可选项扫描输入目录的所有子文件夹
-- 【自动重命名】遇到重名文件时自动添加序号
-- 【配置文件】自动保存设置，下次打开无需重新配置
-
-## 下载与运行
-
-### 方法一：直接运行（推荐给非技术人员）
-
-1. 前往【发布页面】https://github.com/RxinnotRstar/image-classifier-for-keyboard-Python/releases
-2. 下载最新版本的【image_classifier.exe】文件
-3. 双击即可运行，无需安装Python
-
-### 方法二：源代码运行（需要Python环境）
-
-如要运行源代码，请确保已安装Python 3.6+
-
-
-# 安装所需库
-```
-pip install pillow pywin32
-```
-
 然后运行：
 ```
 python image_classifier.py
@@ -84,3 +53,4 @@ python image_classifier.py
 GitHub项目地址：https://github.com/RxinnotRstar/image-classifier-for-keyboard-Python
 
 如有问题或建议，欢迎在GitHub提交Issue！
+
