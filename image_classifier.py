@@ -57,8 +57,8 @@ class ImageClassifier:
         self.build_ui()
         self.root.after(100, lambda: self.root.focus_force())
         if self.input_folder.get() and os.path.exists(self.input_folder.get()):
-            self.load_images()
-
+            self.root.after(200, self.load_images)  # 延迟加载图片，缓解第二次打开脚本的时候图片溢出屏幕的问题。
+            #原来的代码：【            self.load_images()】
     # ------------------------------------------------------------------
     # UI 构建
     # ------------------------------------------------------------------
