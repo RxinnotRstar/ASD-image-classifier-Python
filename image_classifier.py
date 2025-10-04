@@ -17,13 +17,13 @@ class ImageClassifier:
         self.root.state('zoomed')
         # 高 DPI 缩放 + 全局放大字体
         try:
-            ctypes.windll.shcore.SetProcessDpiAwareness(1)   # 让 Windows 告诉 Tkinter 真实 DPI
+            ctypes.windll.shcore.SetProcessDpiAwareness(1)
         except Exception:
             pass
         import tkinter.font as tkfont
         default_font = tkfont.nametofont("TkDefaultFont")
 # =====================================================================================
-        default_font.configure(size=20)      # 在这里更改字体大小。数字越大，字体越大
+        default_font.configure(size=20)      # 字体大小在这里调
 # =====================================================================================
         self.default_font = default_font
         self.root.option_add("*Font", default_font)
@@ -45,6 +45,7 @@ class ImageClassifier:
         self.image_files = []
         self.current_index = 0
         self.history = []          # 撤销栈
+        self.skip_stack = []       # 【新增】记录被 W 跳过的文件
 
         # 支持的扩展名
         self.img_ext = ('.jpg','.jpeg','.png','.gif','.bmp','.tiff','.ico')
@@ -54,7 +55,7 @@ class ImageClassifier:
 
         self.load_config()
         self.build_ui()
-        self.root.after(100, lambda: self.root.focus_force())  # 确保主窗口拿到焦点
+        self.root.after(100, lambda: self.root.focus_force())
 
     # ------------------------------------------------------------------
     # UI 构建
@@ -117,6 +118,7 @@ class ImageClassifier:
                          ('s', lambda e: self.move_to(1)),
                          ('d', lambda e: self.move_to(2)),
                          ('w', lambda e: self.skip()),
+                         ('x', lambda e: self.go_back()),          # 【新增】
                          ('<Control-z>', lambda e: self.undo())):
             self.root.bind(key, func)
 
@@ -176,8 +178,6 @@ class ImageClassifier:
     # 显示逻辑
     # ------------------------------------------------------------------
     def update_display(self):
-        # 输出口检查
-
         if not self.input_folder.get():
             self.show_welcome(); return
         if not os.path.exists(self.input_folder.get()):
@@ -199,15 +199,13 @@ class ImageClassifier:
               "2. 在下方选择 2 到 3 个输出文件夹\n\n"
               "3. 在键盘上按下 A、S、D ，即可分类到对应的文件夹，支持复制或移动\n\n"
               "4. 不知道该怎么分类？按下“W”，可以跳过这张图片\n\n"
-              "5. 不小心按错了？按 Ctrl+Z 可以撤销上一次的分类，支持连续撤销\n\n"
-              "6. 感觉字体太小？右键编辑代码，搜索：default_font.configure，可以更改字体大小")
+              "5. 突然想分类刚才跳过的图？按“X”即可逐张回退，直到栈空\n\n"
+              "6. 不小心按错了？按 Ctrl+Z 可以撤销上一次的分类，支持连续撤销\n\n"
+              "7. 感觉字体太小？右键编辑代码，搜索：default_font.configure，可以更改字体大小")
+        self.img_label.config(text=txt, fg='gray',
+                            font=(self.default_font.actual()['family'],
+                                  self.default_font.actual()['size']))
 
-        self.img_label.config(text=txt, fg='gray', font=('微软雅黑', 13))
-        self.img_label.config(
-            text=txt,
-            fg='gray',
-            font=(self.default_font.actual()['family'], self.default_font.actual()['size'])
-        )
     def show_error(self, msg):
         self.img_label.config(text=msg, fg='red', font=('微软雅黑', 12))
 
@@ -223,7 +221,6 @@ class ImageClassifier:
         else:
             try:
                 img = Image.open(f)
-                # 自适应缩放
                 fw = self.img_frame.winfo_width() - 10
                 fh = self.img_frame.winfo_height() - 10
                 if fw > 1 and fh > 1:
@@ -255,7 +252,6 @@ class ImageClassifier:
         src = self.image_files[self.current_index]
         name = os.path.basename(src)
         dst = os.path.join(fo, name)
-        # 重名处理
         base, ext = os.path.splitext(name)
         c = 1
         while os.path.exists(dst):
@@ -267,14 +263,12 @@ class ImageClassifier:
                 shutil.copy2(src, dst)
             else:
                 shutil.move(src, dst)
-            # 写历史
             self.history.append({
                 'src': dst,
                 'dst': src,
                 'idx': self.current_index,
                 'copy': self.copy_mode.get()
             })
-            # 从列表移除
             self.image_files.pop(self.current_index)
             if self.current_index >= len(self.image_files) and self.image_files:
                 self.current_index = len(self.image_files) - 1
@@ -284,7 +278,17 @@ class ImageClassifier:
 
     def skip(self):
         if not self.image_files: return
-        self.current_index = (self.current_index + 1) % len(self.image_files)
+        self.skip_stack.append(self.image_files.pop(self.current_index))
+        if self.current_index >= len(self.image_files):
+            self.current_index = 0
+        self.update_display()
+
+    # 【新增】按 X 回退刚才跳过的图片，栈空则静默
+    def go_back(self):
+        if not self.skip_stack:          # 栈空，什么都不做
+            return
+        back_file = self.skip_stack.pop()
+        self.image_files.insert(self.current_index, back_file)
         self.update_display()
 
     def undo(self):
