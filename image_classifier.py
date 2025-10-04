@@ -1,9 +1,36 @@
-﻿# image_classifier_ptr.py  # 可随意改名
+﻿# image_classifier_ptr_readonly_hint.py
 import os, json, shutil, ctypes
 from tkinter import *
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import win32api, win32con
+
+class HintEntry(Entry):
+    """只读+灰色提示文字"""
+    def __init__(self, master, hint='', **kw):
+        super().__init__(master, **kw)
+        self.hint = hint
+        self.hint_color = 'grey'
+        self.normal_color = self['fg']
+        self.bind('<FocusIn>',  self._clear_hint)
+        self.bind('<FocusOut>', self._show_hint)
+        self._show_hint()
+
+    def _clear_hint(self, *_):
+        if self['fg'] == self.hint_color:
+            self.delete(0, END)
+            self.config(fg=self.normal_color)
+
+    def _show_hint(self, *_):
+        if not self.get():
+            self.insert(0, self.hint)
+            self.config(fg=self.hint_color)
+
+    def set(self, text):
+        """外部回填路径时调用"""
+        self._clear_hint()
+        self.insert(0, text)
+        self.config(fg=self.normal_color)
 
 class ImageClassifier:
     def __init__(self, root):
@@ -15,7 +42,6 @@ class ImageClassifier:
         except:
             pass
 
-        # ✅ 修复：把 default_font 保存为实例变量
         import tkinter.font as tkfont
         self.default_font = tkfont.nametofont("TkDefaultFont")
         self.default_font.configure(size=20)
@@ -56,7 +82,9 @@ class ImageClassifier:
         line1 = Frame(self.root)
         line1.pack(fill=X, padx=10, pady=5)
         Label(line1, text="输入路径：").pack(side=LEFT)
-        Entry(line1, textvariable=self.input_folder).pack(side=LEFT, fill=X, expand=True, padx=5)
+        self.input_entry = HintEntry(line1, textvariable=self.input_folder,
+                                     hint='这里是需要处理的文件夹路径', state='readonly')
+        self.input_entry.pack(side=LEFT, fill=X, expand=True, padx=5)
         Button(line1, text="浏览…", command=self.browse_input).pack(side=LEFT, padx=5)
         Checkbutton(line1, text="包含子文件夹", variable=self.inc_subfolders,
                    command=self.load_images).pack(side=LEFT, padx=5)
@@ -87,12 +115,18 @@ class ImageClassifier:
 
         line4 = Frame(self.root)
         line4.pack(fill=X, padx=10, pady=5)
+        self.out_entries = []
+        hints = ['这里是输出文件夹A的路径',
+                 '这里是输出文件夹B的路径',
+                 '这里是输出文件夹C的路径']
         for i, fo in enumerate(self.output_folders):
             frm = Frame(line4)
             frm.pack(side=LEFT, fill=X, expand=True, padx=(0,5) if i<2 else 0)
             Button(frm, text=fo["name"], width=10,
                   command=lambda f=fo: self.browse_output(f)).pack(side=LEFT)
-            Entry(frm, textvariable=fo["path"], state="readonly").pack(side=LEFT, fill=X, expand=True, padx=5)
+            e = HintEntry(frm, textvariable=fo["path"], hint=hints[i], state='readonly')
+            e.pack(side=LEFT, fill=X, expand=True, padx=5)
+            self.out_entries.append(e)
 
         self.status = Label(self.root, text="", bd=1, relief=SUNKEN, anchor=W)
         self.status.pack(side=BOTTOM, fill=X)
@@ -298,6 +332,7 @@ class ImageClassifier:
         d = filedialog.askdirectory()
         if d:
             self.input_folder.set(d)
+            self.input_entry.set(d)        # 同步回填并清除提示
             self.load_images()
             self.save_config()
 
@@ -305,6 +340,8 @@ class ImageClassifier:
         d = filedialog.askdirectory()
         if d:
             fo["path"].set(d)
+            idx = next(i for i,x in enumerate(self.output_folders) if x is fo)
+            self.out_entries[idx].set(d)   # 同步回填并清除提示
             self.save_config()
             self.update_display()
 
