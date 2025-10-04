@@ -1,15 +1,4 @@
 # ASD图片分类器 - 键盘快速分类助手
-
-
-ASD图片分类器（ASD Image Classifier）是一个使用 Python 编写的图片分类器工具，可以让你按键盘上的键进行图片分类操作，助力提高你的效率！
-
-## 功能特点
-
-- 按下A、S、D三个键，就可以将图片放入三个输出文件夹，支持复制模式（默认，保留原文件）和移动模式
-- 支持图片（JPG/PNG/GIF等）、视频（MP4/AVI等）、Flash文件（SWF）的分类
-- 可按名称、时间、大小排序，支持正序/倒序
-- 不小心按错了？没关系！按下 Ctrl+Z ，照片回来了！（注意：工具重启后无法撤销）
-- 可以选择扫描子文件夹和不扫描，避免误分类（尤其是输出文件夹在输入文件夹里面的时候）
 - 自动帮你保存配置，下次不用一个一个选文件夹
 
 ## 下载与运行
@@ -66,3 +55,4 @@ pip install pillow pywin32
 GitHub项目地址：https://github.com/RxinnotRstar/image-classifier-for-keyboard-Python
 
 如有问题或建议，欢迎在GitHub提交Issue！
+
