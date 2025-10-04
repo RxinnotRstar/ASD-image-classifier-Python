@@ -14,10 +14,13 @@ class ImageClassifier:
             ctypes.windll.shcore.SetProcessDpiAwareness(1)
         except:
             pass
+
+        # ✅ 修复：把 default_font 保存为实例变量
         import tkinter.font as tkfont
-        default_font = tkfont.nametofont("TkDefaultFont")
-        default_font.configure(size=20)
-        self.root.option_add("*Font", default_font)
+        self.default_font = tkfont.nametofont("TkDefaultFont")
+        self.default_font.configure(size=20)
+        self.root.option_add("*Font", self.default_font)
+
         self.config_file = "classifier_config.json"
 
         self.input_folder   = StringVar()
@@ -32,11 +35,10 @@ class ImageClassifier:
             {"name": "文件夹３(D)", "path": StringVar()}
         ]
 
-        # 新数据模型
-        self.all_images = []   # 剩余文件
-        self.ptr = 0           # 当前指针
-        self.history = []      # 撤销栈
-        self.skip_stack = []   # 仅用于日志/回退提示（可选）
+        self.all_images = []
+        self.ptr = 0
+        self.history = []
+        self.skip_stack = []
 
         self.img_ext = ('.jpg','.jpeg','.png','.gif','.bmp','.tiff','.ico')
         self.vid_ext = ('.mp4','.avi','.mov','.wmv','.flv','.mkv')
@@ -51,7 +53,6 @@ class ImageClassifier:
 
     # ---------------- UI ----------------
     def build_ui(self):
-        # 1. 输入行
         line1 = Frame(self.root)
         line1.pack(fill=X, padx=10, pady=5)
         Label(line1, text="输入路径：").pack(side=LEFT)
@@ -60,7 +61,6 @@ class ImageClassifier:
         Checkbutton(line1, text="包含子文件夹", variable=self.inc_subfolders,
                    command=self.load_images).pack(side=LEFT, padx=5)
 
-        # 2. 排序/模式
         line2 = Frame(self.root)
         line2.pack(fill=X, padx=10, pady=5)
         sort_frm = Frame(line2)
@@ -79,14 +79,12 @@ class ImageClassifier:
         Radiobutton(mode_frm, text="复制模式", variable=self.copy_mode, value=True).pack(side=LEFT)
         Radiobutton(mode_frm, text="移动模式", variable=self.copy_mode, value=False).pack(side=LEFT)
 
-        # 3. 图片区
         self.img_frame = Frame(self.root, bg='white', relief=SUNKEN, bd=2)
         self.img_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
         self.img_label = Label(self.img_frame, bg='white', anchor=CENTER)
         self.img_label.pack(fill=BOTH, expand=True)
         self.img_label.bind("<Double-Button-1>", self.open_current_file)
 
-        # 4. 输出行
         line4 = Frame(self.root)
         line4.pack(fill=X, padx=10, pady=5)
         for i, fo in enumerate(self.output_folders):
@@ -96,11 +94,9 @@ class ImageClassifier:
                   command=lambda f=fo: self.browse_output(f)).pack(side=LEFT)
             Entry(frm, textvariable=fo["path"], state="readonly").pack(side=LEFT, fill=X, expand=True, padx=5)
 
-        # 5. 状态栏
         self.status = Label(self.root, text="", bd=1, relief=SUNKEN, anchor=W)
         self.status.pack(side=BOTTOM, fill=X)
 
-        # 6. 键盘
         for key, func in (('a', lambda e: self.move_to(0)),
                          ('s', lambda e: self.move_to(1)),
                          ('d', lambda e: self.move_to(2)),
@@ -203,7 +199,7 @@ class ImageClassifier:
         else:
             self.status.config(text="")
 
-    # ---------------- 核心操作（仅动以下 4 个函数） ----------------
+    # ---------------- 核心操作 ----------------
     def skip(self):
         if not self.all_images: return
         self.skip_stack.append(self.all_images[self.ptr])
@@ -294,6 +290,7 @@ class ImageClassifier:
                     if i < 3:
                         self.output_folders[i]["path"].set(p)
         except:
+            print("配置文件丢失或损坏，已恢复默认设置。")
             pass
 
     # ---------------- 浏览/打开 ----------------
