@@ -56,6 +56,8 @@ class ImageClassifier:
         self.load_config()
         self.build_ui()
         self.root.after(100, lambda: self.root.focus_force())
+        if self.input_folder.get() and os.path.exists(self.input_folder.get()):
+            self.load_images()
 
     # ------------------------------------------------------------------
     # UI 构建
