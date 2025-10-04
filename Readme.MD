@@ -23,10 +23,9 @@
 
 ### 方法二：源代码运行（需要Python环境）
 
-如要运行源代码，请确保已安装Python 3.6+
+如要运行源代码，请确保已安装Python 3.6+（ https://www.python.org/downloads/ ），然后安装所需库：
 
 ```
-# 安装所需库
 pip install pillow pywin32
 ```
 
