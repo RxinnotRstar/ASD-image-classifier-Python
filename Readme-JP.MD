@@ -1,4 +1,5 @@
 # ASD画像分類器 - キーボードでサクサク画像整理
+[中文](https://github.com/RxinnotRstar/ASD-image-classifier-Python/blob/main/Readme.MD)  [English](https://github.com/RxinnotRstar/ASD-image-classifier-Python/blob/main/Readme-EN.MD)
 
 キーを押すだけで画像が分類される！
 
