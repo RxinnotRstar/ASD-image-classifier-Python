@@ -1,5 +1,5 @@
 # ASD图片分类器 - 键盘分类图片小工具
-
+[日本語](https://github.com/RxinnotRstar/ASD-image-classifier-Python/blob/main/Readme-JP.MD)  [English](https://github.com/RxinnotRstar/ASD-image-classifier-Python/blob/main/Readme-EN.MD)
 只要按一按键盘，图片就分类好了！
 
 ASD图片分类器（ASD Image Classifier）是一个使用 Python 编写的图片分类工具，通过按下键盘上的快捷键，展示的图片自动进入分类文件夹，助力提高你的效率！
