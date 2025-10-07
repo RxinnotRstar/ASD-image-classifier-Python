@@ -25,7 +25,7 @@ pip install pillow pywin32
 
 最后运行这个脚本，大功告成！
 
-## 编译为exe（可选）
+## 编译为exe，方便随地大小辩（不是）
 
 如果你想将脚本打包成一个独立的 `.exe` 文件，方便在没有安装 Python 的电脑上运行，可以使用 `pyinstaller` 工具：
 
@@ -40,21 +40,19 @@ pip install pyinstaller
 2. 在命令行中进入脚本所在目录，运行以下命令：
 
 ```
-pyinstaller --onefile --windowed your_script_name.py
+pyinstaller --onefile --windowed image_classifier.py
 ```
 
-- `--onefile` 表示打包成单个 exe 文件  
-- `--windowed` 表示不显示命令行窗口（适用于图形界面程序）
+- `--onefile` 表示打包成单个 exe 文件（推荐）
+- `--windowed` 表示不显示命令行窗口，适用于图形界面程序
 
 3. 打包完成后，exe 文件会生成在 `dist` 文件夹中，双击即可运行。
 
 ### 注意事项：
 
-- 打包后的文件体积较大，属于正常现象。
-- 若程序中引用了外部资源（如图片、配置文件等），需确保它们在打包后路径正确。
+- 打包后的文件体积较大属于正常现象，因为将Python解释器和运行库也打包了进去。
 - 某些杀毒软件可能会误报打包后的 exe 文件，建议添加信任或提交至杀毒软件白名单。
-
-如需进一步自定义打包内容（例如添加图标、隐藏控制台等），可参考 [PyInstaller 官方文档](https://pyinstaller.readthedocs.io/)。
+- 如需进一步自定义打包内容（例如添加图标），可参考 PyInstaller 官方文档（ https://pyinstaller.readthedocs.io/ ）。
 
 ## 使用教程
 
