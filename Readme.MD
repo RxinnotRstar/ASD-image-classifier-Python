@@ -1,6 +1,5 @@
 # ASD图片分类器 - 键盘分类图片小工具
 
-
 只要按一按键盘，图片就分类好了！
 
 ASD图片分类器（ASD Image Classifier）是一个使用 Python 编写的图片分类工具，通过按下快捷键 展示的图片自动进入分类文件夹，助力提高你的效率！
@@ -25,6 +24,37 @@ pip install pillow pywin32
 ```
 
 最后运行这个脚本，大功告成！
+
+## 编译为exe（可选）
+
+如果你想将脚本打包成一个独立的 `.exe` 文件，方便在没有安装 Python 的电脑上运行，可以使用 `pyinstaller` 工具：
+
+### 步骤如下：
+
+1. 安装 pyinstaller：
+
+```
+pip install pyinstaller
+```
+
+2. 在命令行中进入脚本所在目录，运行以下命令：
+
+```
+pyinstaller --onefile --windowed your_script_name.py
+```
+
+- `--onefile` 表示打包成单个 exe 文件  
+- `--windowed` 表示不显示命令行窗口（适用于图形界面程序）
+
+3. 打包完成后，exe 文件会生成在 `dist` 文件夹中，双击即可运行。
+
+### 注意事项：
+
+- 打包后的文件体积较大，属于正常现象。
+- 若程序中引用了外部资源（如图片、配置文件等），需确保它们在打包后路径正确。
+- 某些杀毒软件可能会误报打包后的 exe 文件，建议添加信任或提交至杀毒软件白名单。
+
+如需进一步自定义打包内容（例如添加图标、隐藏控制台等），可参考 [PyInstaller 官方文档](https://pyinstaller.readthedocs.io/)。
 
 ## 使用教程
 
@@ -51,8 +81,8 @@ pip install pillow pywin32
 
 ## 文件支持格式
 
-【图片格式】JPG、JPEG、PNG、GIF、BMP、TIFF、ICO
-【视频格式】MP4、AVI、MOV、WMV、FLV、MKV
+【图片格式】JPG、JPEG、PNG、GIF、BMP、TIFF、ICO  
+【视频格式】MP4、AVI、MOV、WMV、FLV、MKV  
 【Flash格式】SWF
 
 ## 注意事项
@@ -69,4 +99,5 @@ pip install pillow pywin32
 
 GitHub项目地址：https://github.com/RxinnotRstar/image-classifier-for-keyboard-Python
 
+如有问题或建议，欢迎在GitHub提交Issue！
 如有问题或建议，欢迎在GitHub提交Issue！
