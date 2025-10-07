@@ -182,7 +182,7 @@ class ImageClassifier:
             self.show_error(f"目录：{self.input_folder.get()} 没有图片"); return
         valid = sum(1 for fo in self.output_folders if fo["path"].get())
         if valid < 2:
-            self.show_error("请选择至少２个输出文件夹！")
+            self.show_error("请选择至少２个输出文件夹。\n请注意检查右上角的分类模式是否正确。\n此时，您仍可以双击打开当前选定的文件，即使程序没有显示该文件。")
             return
         self.show_current()
 
