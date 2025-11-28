@@ -16,9 +16,9 @@ ASD图片分类器（ASD Image Classifier）是一个使用 Python 编写的图�
 
 ## 下载与运行
 
-如要运行该脚本，需要使用Windows系统，并确保已安装Python 3.7+（ https://www.python.org/downloads/ ），
+如要运行该脚本，需要使用Windows系统（已初步支持其它系统，如有问题欢迎反馈），并确保已安装Python 3.7+（ https://www.python.org/downloads/ ），
 
-然后使用命令行安装所需的Pillow、Tkinter（这个一般是自带的）、pywin32运行库：
+然后使用命令行安装所需的Pillow、Tkinter（一般是自带的，但Linux可能需要手动安装）、pywin32运行库：
 
 ```
 pip install pillow pywin32
