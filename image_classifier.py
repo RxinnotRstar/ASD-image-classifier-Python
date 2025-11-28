@@ -229,6 +229,7 @@ class ImageClassifier:
 
         if ext in self.vid_ext + self.swf_ext:
             self.img_label.config(
+                image="",
                 text=f"视频／Flash 文件：{os.path.basename(f)}\n\n双击此处用默认程序打开",
                 fg='blue', font=(None, 12))
         else:
