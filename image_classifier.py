@@ -1,9 +1,9 @@
-﻿# image_classifier_ptr_readonly_hint.py
-import os, json, shutil, ctypes
+﻿# image_classifier_cross_platform_dpi.py
+import os, json, shutil, sys
 from tkinter import *
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
-import win32api, win32con
+import subprocess
 
 class HintEntry(Entry):
     """只读+灰色提示文字"""
@@ -36,12 +36,29 @@ class ImageClassifier:
     def __init__(self, root):
         self.root = root
         self.root.title("图片分类工具")
-        self.root.state('zoomed')
-        try:
-            ctypes.windll.shcore.SetProcessDpiAwareness(1)
-        except:
-            pass
-
+        
+        # ===== 跨平台高分屏支持 =====
+        # Windows: 启用 DPI 感知
+        if sys.platform == 'win32':
+            try:
+                import ctypes
+                ctypes.windll.shcore.SetProcessDpiAwareness(1)
+            except:
+                pass
+            self.root.state('zoomed')
+        
+        # macOS: 自动支持 Retina，直接最大化
+        elif sys.platform == 'darwin':
+            root.geometry('%dx%d+%d+%d' % (root.winfo_screenwidth(), root.winfo_screenheight(), 0, 0))
+        
+        # Linux: 支持高分屏并最大化
+        else:
+            # 检测是否是高 DPI 屏幕（简单判断）
+            if root.winfo_screenwidth() > 1920:
+                root.tk.call('tk', 'scaling', 1.5)  # 手动设置缩放
+            root.attributes('-zoomed', True)
+        
+        # 跨平台字体设置
         import tkinter.font as tkfont
         self.default_font = tkfont.nametofont("TkDefaultFont")
         self.default_font.configure(size=20)
@@ -202,7 +219,8 @@ class ImageClassifier:
                                   self.default_font.actual()['size']))
 
     def show_error(self, msg):
-        self.img_label.config(text=msg, fg='red', font=('微软雅黑', 12))
+        # 使用跨平台默认字体
+        self.img_label.config(text=msg, fg='red', font=(None, 12))
 
     def show_current(self):
         if not self.all_images: return
@@ -212,7 +230,7 @@ class ImageClassifier:
         if ext in self.vid_ext + self.swf_ext:
             self.img_label.config(
                 text=f"视频／Flash 文件：{os.path.basename(f)}\n\n双击此处用默认程序打开",
-                fg='blue', font=('微软雅黑', 12))
+                fg='blue', font=(None, 12))
         else:
             try:
                 img = Image.open(f)
@@ -349,7 +367,13 @@ class ImageClassifier:
         if not self.all_images: return
         f = self.all_images[self.ptr]
         try:
-            win32api.ShellExecute(0, 'open', f, None, None, win32con.SW_SHOWNORMAL)
+            # 跨平台文件打开方式
+            if sys.platform == 'win32':
+                os.startfile(f)
+            elif sys.platform == 'darwin':  # macOS
+                subprocess.run(['open', f], check=True)
+            else:  # Linux
+                subprocess.run(['xdg-open', f], check=True)
         except Exception as e:
             messagebox.showerror("错误", f"无法打开文件：{e}")
 
