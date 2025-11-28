@@ -1,5 +1,100 @@
-﻿# image_classifier_cross_platform_dpi.py
-import os, json, shutil, sys
+﻿#!/usr/bin/env python3
+
+# ===================== 依赖检测 =====================
+import sys
+import subprocess
+import shutil
+import os
+
+def check_and_install_dependencies():
+    """检测依赖，Linux下不自动安装Pillow，仅提示"""
+    
+    print("\n" + "="*60)
+    print("正在检测系统依赖...")
+    print("="*60)
+    
+    # 检测tkinter（Linux下需要系统包）
+    try:
+        import tkinter
+        print("[✓] tkinter 已安装")
+    except ImportError:
+        if sys.platform == "linux":
+            if os.path.exists("/etc/debian_version"):
+                cmd = "sudo apt update && sudo apt install -y python3-tk"
+                pkg = "python3-tk"
+            elif os.path.exists("/etc/redhat-release"):
+                cmd = "sudo dnf install -y python3-tkinter"
+                pkg = "python3-tkinter"
+            elif shutil.which("pacman"):
+                cmd = "sudo pacman -S --noconfirm tk"
+                pkg = "tk"
+            else:
+                cmd = "请手动安装系统对应的python3-tk包"
+                pkg = "python3-tk"
+            
+            print(f"\n[✗] tkinter 未安装 (系统库)")
+            print(f"\n检测到您的Linux系统需要手动安装tkinter:")
+            print(f"  包名: {pkg}")
+            print(f"  建议命令: {cmd}")
+            print("\n注意：此步骤需要管理员权限，脚本无法自动完成。")
+            print("请在另一个终端中运行上述命令后，重新启动本脚本。")
+            print("="*60)
+            sys.exit(1)
+        else:
+            print("[✗] tkinter 未安装")
+            print("\n您的系统缺少tkinter，这通常意味着Python安装不完整。")
+            print("请重新安装Python并确保包含 tcl/tk 支持。")
+            print("="*60)
+            input("\n按回车键退出...")
+            sys.exit(1)
+    
+    # 检测Pillow（Linux下不自动安装）
+    try:
+        from PIL import Image, ImageTk
+        print("[✓] Pillow 已安装")
+    except ImportError:
+        print("[✗] Pillow 未安装")
+        
+        if sys.platform == "linux":
+            # Linux下仅提示，不自动安装
+            if os.path.exists("/etc/debian_version"):
+                cmd = "sudo apt install python3-pil"
+                pkg = "python3-pil"
+            elif os.path.exists("/etc/redhat-release"):
+                cmd = "sudo dnf install python3-pillow"
+                pkg = "python3-pillow"
+            elif shutil.which("pacman"):
+                cmd = "sudo pacman -S python-pillow"
+                pkg = "python-pillow"
+            else:
+                cmd = "pip install Pillow"
+                pkg = "Pillow"
+            
+            print(f"\n检测到您的系统需要手动安装Pillow:")
+            print(f"  包名: {pkg}")
+            print(f"  建议命令: {cmd}")
+            print("\n对于Debian/Ubuntu等系统，建议使用系统包管理器安装。")
+            print("安装完成后，请重新运行本脚本。")
+            print("="*60)
+            sys.exit(1)
+        else:
+            # Windows/macOS: 提示用户手动安装
+            print("\nPillow可以通过pip安装:")
+            print(f"  pip install Pillow")
+            print("\n请安装完成后重新运行本脚本。")
+            print("="*60)
+            input("按回车键退出...")
+            sys.exit(1)
+    
+    print("\n所有依赖检测通过！正在启动程序...\n")
+    return True
+
+
+# ===================== 主程序 =====================
+if __name__ == "__main__":
+    check_and_install_dependencies()
+
+import json
 from tkinter import *
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
@@ -37,8 +132,7 @@ class ImageClassifier:
         self.root = root
         self.root.title("图片分类工具")
         
-        # ===== 跨平台高分屏支持 =====
-        # Windows: 启用 DPI 感知
+        # Windows DPI设置
         if sys.platform == 'win32':
             try:
                 import ctypes
@@ -47,18 +141,17 @@ class ImageClassifier:
                 pass
             self.root.state('zoomed')
         
-        # macOS: 自动支持 Retina，直接最大化
+        # macOS最大化
         elif sys.platform == 'darwin':
             root.geometry('%dx%d+%d+%d' % (root.winfo_screenwidth(), root.winfo_screenheight(), 0, 0))
         
-        # Linux: 支持高分屏并最大化
+        # Linux高分屏支持
         else:
-            # 检测是否是高 DPI 屏幕（简单判断）
             if root.winfo_screenwidth() > 1920:
-                root.tk.call('tk', 'scaling', 1.5)  # 手动设置缩放
+                root.tk.call('tk', 'scaling', 1.5)
             root.attributes('-zoomed', True)
         
-        # 跨平台字体设置
+        # 字体设置
         import tkinter.font as tkfont
         self.default_font = tkfont.nametofont("TkDefaultFont")
         self.default_font.configure(size=20)
@@ -94,7 +187,6 @@ class ImageClassifier:
         if self.input_folder.get() and os.path.exists(self.input_folder.get()):
             self.root.after(200, self.load_images)
 
-    # ---------------- UI ----------------
     def build_ui(self):
         line1 = Frame(self.root)
         line1.pack(fill=X, padx=10, pady=5)
@@ -158,7 +250,6 @@ class ImageClassifier:
 
         self.update_display()
 
-    # ---------------- 加载图片 ----------------
     def load_images(self):
         self.all_images = []
         if not self.input_folder.get(): return
@@ -188,7 +279,6 @@ class ImageClassifier:
         self.ptr = 0
         self.update_display()
 
-    # ---------------- 显示逻辑 ----------------
     def update_display(self):
         self.update_status_bar()
         if not self.input_folder.get():
@@ -219,7 +309,6 @@ class ImageClassifier:
                                   self.default_font.actual()['size']))
 
     def show_error(self, msg):
-        # 使用跨平台默认字体
         self.img_label.config(text=msg, fg='red', font=(None, 12))
 
     def show_current(self):
@@ -252,7 +341,6 @@ class ImageClassifier:
         else:
             self.status.config(text="")
 
-    # ---------------- 核心操作 ----------------
     def skip(self):
         if not self.all_images: return
         self.skip_stack.append(self.all_images[self.ptr])
@@ -313,7 +401,6 @@ class ImageClassifier:
         except Exception as e:
             messagebox.showerror("错误", f"撤销失败：{e}")
 
-    # ---------------- 配置 ----------------
     def save_config(self):
         cfg = {
             'input_folder': self.input_folder.get(),
@@ -344,14 +431,12 @@ class ImageClassifier:
                         self.output_folders[i]["path"].set(p)
         except:
             print("配置文件丢失或损坏，已恢复默认设置。")
-            pass
 
-    # ---------------- 浏览/打开 ----------------
     def browse_input(self):
         d = filedialog.askdirectory()
         if d:
             self.input_folder.set(d)
-            self.input_entry.set(d)        # 同步回填并清除提示
+            self.input_entry.set(d)
             self.load_images()
             self.save_config()
 
@@ -360,7 +445,7 @@ class ImageClassifier:
         if d:
             fo["path"].set(d)
             idx = next(i for i,x in enumerate(self.output_folders) if x is fo)
-            self.out_entries[idx].set(d)   # 同步回填并清除提示
+            self.out_entries[idx].set(d)
             self.save_config()
             self.update_display()
 
@@ -368,18 +453,16 @@ class ImageClassifier:
         if not self.all_images: return
         f = self.all_images[self.ptr]
         try:
-            # 跨平台文件打开方式
             if sys.platform == 'win32':
                 os.startfile(f)
-            elif sys.platform == 'darwin':  # macOS
+            elif sys.platform == 'darwin':
                 subprocess.run(['open', f], check=True)
-            else:  # Linux
+            else:
                 subprocess.run(['xdg-open', f], check=True)
         except Exception as e:
             messagebox.showerror("错误", f"无法打开文件：{e}")
 
 
-# ----------------------------------------------------------------------
 if __name__ == "__main__":
     root = Tk()
     ImageClassifier(root)
