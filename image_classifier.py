@@ -1,6 +1,5 @@
 ﻿#!/usr/bin/env python3
 
-# ===================== 依赖检测 =====================
 import sys
 import subprocess
 import shutil
@@ -13,7 +12,6 @@ def check_and_install_dependencies():
     print("正在检测系统依赖...")
     print("="*60)
     
-    # 检测tkinter（Linux下需要系统包）
     try:
         import tkinter
         print("[✓] tkinter 已安装")
@@ -48,7 +46,6 @@ def check_and_install_dependencies():
             input("\n按回车键退出...")
             sys.exit(1)
     
-    # 检测Pillow（Linux下不自动安装）
     try:
         from PIL import Image, ImageTk
         print("[✓] Pillow 已安装")
@@ -56,7 +53,6 @@ def check_and_install_dependencies():
         print("[✗] Pillow 未安装")
         
         if sys.platform == "linux":
-            # Linux下仅提示，不自动安装
             if os.path.exists("/etc/debian_version"):
                 cmd = "sudo apt install python3-pil"
                 pkg = "python3-pil"
@@ -78,30 +74,27 @@ def check_and_install_dependencies():
             print("="*60)
             sys.exit(1)
         else:
-            # Windows/macOS: 提示用户手动安装
             print("\nPillow可以通过pip安装:")
             print(f"  pip install Pillow")
             print("\n请安装完成后重新运行本脚本。")
             print("="*60)
-            input("按回车键退出...")
+            input("\n按回车键退出...")
             sys.exit(1)
     
     print("\n所有依赖检测通过！正在启动程序...\n")
     return True
 
 
-# ===================== 主程序 =====================
 if __name__ == "__main__":
     check_and_install_dependencies()
 
 import json
 from tkinter import *
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 from PIL import Image, ImageTk
 import subprocess
 
 class HintEntry(Entry):
-    """只读+灰色提示文字"""
     def __init__(self, master, hint='', **kw):
         super().__init__(master, **kw)
         self.hint = hint
@@ -122,7 +115,6 @@ class HintEntry(Entry):
             self.config(fg=self.hint_color)
 
     def set(self, text):
-        """外部回填路径时调用"""
         self._clear_hint()
         self.insert(0, text)
         self.config(fg=self.normal_color)
@@ -132,7 +124,9 @@ class ImageClassifier:
         self.root = root
         self.root.title("图片分类工具")
         
-        # Windows DPI设置
+        self.windowed_height_ratio = 0.75
+        self.windowed_geometry_set = False
+        
         if sys.platform == 'win32':
             try:
                 import ctypes
@@ -141,17 +135,14 @@ class ImageClassifier:
                 pass
             self.root.state('zoomed')
         
-        # macOS最大化
         elif sys.platform == 'darwin':
             root.geometry('%dx%d+%d+%d' % (root.winfo_screenwidth(), root.winfo_screenheight(), 0, 0))
         
-        # Linux高分屏支持
         else:
             if root.winfo_screenwidth() > 1920:
                 root.tk.call('tk', 'scaling', 1.5)
             root.attributes('-zoomed', True)
         
-        # 字体设置
         import tkinter.font as tkfont
         self.default_font = tkfont.nametofont("TkDefaultFont")
         self.default_font.configure(size=20)
@@ -164,6 +155,9 @@ class ImageClassifier:
         self.sort_method    = StringVar(value="name")
         self.reverse_sort   = BooleanVar(value=False)
         self.copy_mode      = BooleanVar(value=True)
+        
+        self.scale_mode     = StringVar(value="完整显示")
+        self.dont_enlarge   = BooleanVar(value=True)
 
         self.output_folders = [
             {"name": "文件夹１(A)", "path": StringVar()},
@@ -201,23 +195,42 @@ class ImageClassifier:
         line2 = Frame(self.root)
         line2.pack(fill=X, padx=10, pady=5)
         sort_frm = Frame(line2)
-        sort_frm.pack(side=LEFT, fill=X, expand=True)
+        sort_frm.pack(side=LEFT)
         for txt, val in [("按时间排序（新的在前）","time"),
                          ("按大小排序（大的在前）","size"),
                          ("按名称排序（方向为正）","name")]:
             Radiobutton(sort_frm, text=txt, variable=self.sort_method,
                        value=val, command=self.load_images).pack(side=LEFT, padx=5)
-        Checkbutton(sort_frm, text="倒序排列", variable=self.reverse_sort,
+        Checkbutton(sort_frm, text="倒序", variable=self.reverse_sort,
                    command=self.load_images).pack(side=LEFT, padx=10)
+        
+        Frame(line2).pack(side=LEFT, fill=X, expand=True)
+        
+        Label(line2, text="缩放控制：").pack(side=LEFT, padx=(10,0))
+        scale_frame = Frame(line2)
+        scale_frame.pack(side=LEFT, padx=5)
+        ttk.Combobox(scale_frame, textvariable=self.scale_mode, 
+                    values=["完整显示", "填充窗口", "原始尺寸"], 
+                    state="readonly", width=10).pack(side=LEFT)
+        self.scale_mode.trace_add('write', self.on_display_option_change)
+        
+        Checkbutton(line2, text="小图不放大", variable=self.dont_enlarge,
+                   command=self.on_display_option_change).pack(side=LEFT, padx=5)
+        
         sep = Frame(line2, width=2, bg="gray")
         sep.pack(side=LEFT, fill=Y, padx=10)
+        
         mode_frm = Frame(line2)
         mode_frm.pack(side=LEFT)
         Radiobutton(mode_frm, text="复制模式", variable=self.copy_mode, value=True).pack(side=LEFT)
         Radiobutton(mode_frm, text="移动模式", variable=self.copy_mode, value=False).pack(side=LEFT)
+        
+        Button(line2, text="撤销", width=10, command=self.undo).pack(side=LEFT, padx=5)
 
         self.img_frame = Frame(self.root, bg='white', relief=SUNKEN, bd=2)
         self.img_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
+        self.img_frame.pack_propagate(False)
+        
         self.img_label = Label(self.img_frame, bg='white', anchor=CENTER)
         self.img_label.pack(fill=BOTH, expand=True)
         self.img_label.bind("<Double-Button-1>", self.open_current_file)
@@ -249,6 +262,10 @@ class ImageClassifier:
             self.root.bind(key, func)
 
         self.update_display()
+
+    def on_display_option_change(self, *args):
+        if self.all_images:
+            self.show_current()
 
     def load_images(self):
         self.all_images = []
@@ -324,11 +341,50 @@ class ImageClassifier:
         else:
             try:
                 img = Image.open(f)
-                fw = self.img_frame.winfo_width() - 10
-                fh = self.img_frame.winfo_height() - 10
-                if fw > 1 and fh > 1:
-                    img.thumbnail((fw, fh), Image.Resampling.LANCZOS)
-                ph = ImageTk.PhotoImage(img)
+                frame_w = self.img_frame.winfo_width() - 10
+                frame_h = self.img_frame.winfo_height() - 10
+                
+                if frame_w < 50 or frame_h < 50:
+                    return
+                
+                scale_mode = self.scale_mode.get()
+                dont_enlarge = self.dont_enlarge.get()
+                
+                if scale_mode == "原始尺寸":
+                    ph = ImageTk.PhotoImage(img)
+                elif scale_mode == "填充窗口":
+                    # 计算填满窗口所需的缩放比例（取宽高比最大值）
+                    scale_w = frame_w / img.width
+                    scale_h = frame_h / img.height
+                    scale = max(scale_w, scale_h)
+                    
+                    # 修复Bug：只有在需要*放大*时才检查dont_enlarge开关
+                    if dont_enlarge and scale > 1:  # 直接使用布尔值，不要.get()
+                        # 需要放大但开关开启 → 保持1:1原始尺寸（允许溢出）
+                        ph = ImageTk.PhotoImage(img)
+                    else:
+                        # 正常缩放（缩小或放大）
+                        new_w = int(img.width * scale)
+                        new_h = int(img.height * scale)
+                        resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                        ph = ImageTk.PhotoImage(resized)
+                else:
+                    img_ratio = img.width / img.height
+                    frame_ratio = frame_w / frame_h
+                    
+                    if img.width <= frame_w and img.height <= frame_h and dont_enlarge:
+                        ph = ImageTk.PhotoImage(img)
+                    else:
+                        if img_ratio > frame_ratio:
+                            new_w = frame_w
+                            new_h = int(frame_w / img_ratio)
+                        else:
+                            new_h = frame_h
+                            new_w = int(frame_h * img_ratio)
+                        
+                        resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                        ph = ImageTk.PhotoImage(resized)
+                
                 self.img_label.config(image=ph, text="")
                 self.img_label.image = ph
             except Exception as e:
@@ -408,6 +464,8 @@ class ImageClassifier:
             'sort_method': self.sort_method.get(),
             'reverse_sort': self.reverse_sort.get(),
             'copy_mode': self.copy_mode.get(),
+            'scale_mode': self.scale_mode.get(),
+            'dont_enlarge': self.dont_enlarge.get(),
             'output_folders': [fo["path"].get() for fo in self.output_folders]
         }
         try:
@@ -426,6 +484,8 @@ class ImageClassifier:
                 self.sort_method.set(cfg.get('sort_method', 'name'))
                 self.reverse_sort.set(cfg.get('reverse_sort', False))
                 self.copy_mode.set(cfg.get('copy_mode', True))
+                self.scale_mode.set(cfg.get('scale_mode', '完整显示'))
+                self.dont_enlarge.set(cfg.get('dont_enlarge', True))
                 for i, p in enumerate(cfg.get('output_folders', [])):
                     if i < 3:
                         self.output_folders[i]["path"].set(p)
@@ -462,8 +522,53 @@ class ImageClassifier:
         except Exception as e:
             messagebox.showerror("错误", f"无法打开文件：{e}")
 
+    def on_window_configure(self, event):
+        if event.widget != self.root:
+            return
+        
+        if not hasattr(self.root, 'wm_state'):
+            return
+        
+        current_state = self.root.wm_state()
+        
+        if not hasattr(self, '_prev_window_state'):
+            self._prev_window_state = 'zoomed' if sys.platform == 'win32' else 'normal'
+        
+        state_changed = (current_state != self._prev_window_state)
+        
+        if (current_state == 'normal' and 
+            not self.windowed_geometry_set and 
+            self.windowed_height_ratio > 0):
+            
+            screen_height = self.root.winfo_screenheight()
+            target_height = int(screen_height * self.windowed_height_ratio)
+            
+            current_width = self.root.winfo_width()
+            new_geometry = f"{current_width}x{target_height}"
+            self.root.geometry(new_geometry)
+            
+            self.windowed_geometry_set = True
+            state_changed = True
+        
+        if state_changed and self.all_images:
+            current_file = self.all_images[self.ptr]
+            ext = os.path.splitext(current_file)[1].lower()
+            if ext in self.img_ext:
+                self.root.after(100, self.show_current)
+        
+        self._prev_window_state = current_state
+
 
 if __name__ == "__main__":
     root = Tk()
-    ImageClassifier(root)
+    app = ImageClassifier(root)
+    
+    import atexit
+    def cleanup():
+        try:
+            app.save_config()
+        except:
+            pass
+    atexit.register(cleanup)
+    
     root.mainloop()
