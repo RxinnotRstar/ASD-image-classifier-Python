@@ -156,7 +156,7 @@ class ImageClassifier:
         self.reverse_sort   = BooleanVar(value=False)
         self.copy_mode      = BooleanVar(value=True)
         
-        self.scale_mode     = StringVar(value="完整显示")
+        self.scale_mode     = StringVar(value="完整")
         self.dont_enlarge   = BooleanVar(value=True)
 
         self.output_folders = [
@@ -194,24 +194,30 @@ class ImageClassifier:
 
         line2 = Frame(self.root)
         line2.pack(fill=X, padx=10, pady=5)
+
+        Label(line2, text="排序：").pack(side=LEFT, padx=(10,0))
         sort_frm = Frame(line2)
         sort_frm.pack(side=LEFT)
-        for txt, val in [("按时间排序（新的在前）","time"),
-                         ("按大小排序（大的在前）","size"),
-                         ("按名称排序（方向为正）","name")]:
+        for txt, val in [("时间-新的在前","time"),
+                         ("大小-大的在前","size"),
+                         ("名称-方向为正","name")]:
             Radiobutton(sort_frm, text=txt, variable=self.sort_method,
                        value=val, command=self.load_images).pack(side=LEFT, padx=5)
         Checkbutton(sort_frm, text="倒序", variable=self.reverse_sort,
                    command=self.load_images).pack(side=LEFT, padx=10)
+
+        sep2 = Frame(sort_frm, width=2, bg="gray")
+        sep2.pack(side=LEFT, fill=Y, padx=5)
         
+        # 占位弹簧：将后面的控件推到右侧
         Frame(line2).pack(side=LEFT, fill=X, expand=True)
         
-        Label(line2, text="缩放控制：").pack(side=LEFT, padx=(10,0))
+        Label(line2, text="缩放模式：").pack(side=LEFT, padx=(10,0))
         scale_frame = Frame(line2)
         scale_frame.pack(side=LEFT, padx=5)
         ttk.Combobox(scale_frame, textvariable=self.scale_mode, 
-                    values=["完整显示", "填充窗口", "原始尺寸"], 
-                    state="readonly", width=10).pack(side=LEFT)
+                    values=["完整", "填充", "原始"], 
+                    state="readonly", width=4).pack(side=LEFT)
         self.scale_mode.trace_add('write', self.on_display_option_change)
         
         Checkbutton(line2, text="小图不放大", variable=self.dont_enlarge,
@@ -224,8 +230,11 @@ class ImageClassifier:
         mode_frm.pack(side=LEFT)
         Radiobutton(mode_frm, text="复制模式", variable=self.copy_mode, value=True).pack(side=LEFT)
         Radiobutton(mode_frm, text="移动模式", variable=self.copy_mode, value=False).pack(side=LEFT)
+
+        sep_undo = Frame(line2, width=2, bg="gray")
+        sep_undo.pack(side=LEFT, fill=Y, padx=10)
         
-        Button(line2, text="撤销", width=10, command=self.undo).pack(side=LEFT, padx=5)
+        Button(line2, text=" 撤销 ", width=0, command=self.undo).pack(side=LEFT, padx=5)
 
         self.img_frame = Frame(self.root, bg='white', relief=SUNKEN, bd=2)
         self.img_frame.pack(fill=BOTH, expand=True, padx=10, pady=5)
@@ -350,9 +359,9 @@ class ImageClassifier:
                 scale_mode = self.scale_mode.get()
                 dont_enlarge = self.dont_enlarge.get()
                 
-                if scale_mode == "原始尺寸":
+                if scale_mode == "原始":
                     ph = ImageTk.PhotoImage(img)
-                elif scale_mode == "填充窗口":
+                elif scale_mode == "填充":
                     # 计算填满窗口所需的缩放比例（取宽高比最大值）
                     scale_w = frame_w / img.width
                     scale_h = frame_h / img.height
@@ -484,7 +493,7 @@ class ImageClassifier:
                 self.sort_method.set(cfg.get('sort_method', 'name'))
                 self.reverse_sort.set(cfg.get('reverse_sort', False))
                 self.copy_mode.set(cfg.get('copy_mode', True))
-                self.scale_mode.set(cfg.get('scale_mode', '完整显示'))
+                self.scale_mode.set(cfg.get('scale_mode', '完整'))
                 self.dont_enlarge.set(cfg.get('dont_enlarge', True))
                 for i, p in enumerate(cfg.get('output_folders', [])):
                     if i < 3:
